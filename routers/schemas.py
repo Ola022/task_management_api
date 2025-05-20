@@ -1,11 +1,12 @@
 from pydantic import BaseModel
 from datetime import datetime
+from sqlalchemy import DateTime
 
 class UsersBase(BaseModel):       
     full_name : str
     email : str
     password : str
-    role : str
+    role : int
     created_at : datetime
     image_url : str    
 
@@ -13,9 +14,9 @@ class UsersBase(BaseModel):
 class UsersDisplay(BaseModel):
     full_name : str
     email : str    
-    role : str
-    created_at : str
-    image_url : str    
+    role : int
+    created_at : datetime    
+    image_url : str
     class Config():
         orm_mode = True
         

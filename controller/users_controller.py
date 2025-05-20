@@ -13,7 +13,7 @@ def create_user(db: Session, request: UsersBase):
         password = Hash.bcrypt(request.password),
         email = request.email,
         role = request.role,
-        created_at = datetime.datetime.now(),
+        created_at = request.created_at, #datetime.datetime.now(),
         image_url = "none",        
     )
     db.add(new_user)

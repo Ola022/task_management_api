@@ -14,7 +14,6 @@ router = APIRouter(
 def create_user(request: UsersBase, db: Session = Depends(get_db)):
     return users_controller.create_user(db, request)
 
-
 @router.get("/login")
 def login_user(email: str, password: str, db: Session = Depends(get_db)):
     user = users_controller.get_user_by_email(db, email)
