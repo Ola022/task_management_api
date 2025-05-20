@@ -16,7 +16,7 @@ def create_user(request: UsersBase, db: Session = Depends(get_db)):
 
 @router.get("/login")
 def login_user(email: str, password: str, db: Session = Depends(get_db)):
-    user = users_controller.get_user_by_email(db, email)
+    user = users_controller.get_user_by_email_for_login(db, email)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, data="User not found")
     
