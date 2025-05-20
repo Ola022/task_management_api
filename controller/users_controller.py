@@ -1,6 +1,6 @@
 import datetime
 
-from db.models import DbUsers
+from db.models import TblUsers
 from routers.schemas import UsersBase
 from sqlalchemy.orm.session import Session
 from fastapi import HTTPException, status
@@ -8,7 +8,7 @@ from db.hashing import Hash
 
 
 def create_user(db: Session, request: UsersBase):
-    new_user = DbUsers(        
+    new_user = TblUsers(        
         full_name = request.full_name,        
         password = Hash.bcrypt(request.password),
         email = request.email,
@@ -23,7 +23,7 @@ def create_user(db: Session, request: UsersBase):
 
    
 def get_user_by_id(db: Session, id: int):
-    user_info = db.query(DbUsers).filter(DbUsers.id == id).first()
+    user_info = db.query(TblUsers).filter(TblUsers.id == id).first()
     if not user_info:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
@@ -39,7 +39,7 @@ def get_user_by_id(db: Session, id: int):
 
    
 def get_user_by_email(db: Session, email: int):
-    user_info = db.query(DbUsers).filter(DbUsers.email == email).first()
+    user_info = db.query(TblUsers).filter(TblUsers.email == email).first()
     if not user_info:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
@@ -54,4 +54,4 @@ def get_user_by_email(db: Session, email: int):
     }
 
 def get_user_by_email_for_login(db: Session, email: int):
-    return db.query(DbUsers).filter(DbUsers.email == email).first()
+    return db.query(TblUsers).filter(TblUsers.email == email).first()

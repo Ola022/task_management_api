@@ -2,7 +2,7 @@ from .database  import Base
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 
-class DbUsers(Base):
+class TblUsers(Base):
     __tablename__ = 'tbl_users'
     id = Column(Integer, primary_key=True, index=True)    
     full_name = Column(String)
@@ -14,7 +14,7 @@ class DbUsers(Base):
     
     
     
-class DbTasks(Base):
+class TblTasks(Base):
     __tablename__ = 'tbl_tasks'
     id = Column(Integer, primary_key=True, index=True)    
     title = Column(String)                  #Task title
@@ -31,7 +31,7 @@ class DbTasks(Base):
     #user  = relationship('DbUser', back_populates='items')   
     
     
-class DbComments(Base):
+class TblComments(Base):
     __tablename__ = 'tbl_comments'
     id = Column(Integer, primary_key=True, index=True)    
     task_id = Column(Integer)  

@@ -1,13 +1,13 @@
 from fastapi import status
 from sqlalchemy.orm import Session
-from db.models import DbUsers, DbTasks, DbComments
+from db.models import TblUsers, TblTasks, TblComments
 from routers.schemas import TasksBase, TasksDisplay
 import datetime
 class TaskController:
 
     def __init__(self, db: Session, user_id: int):
         self.db = db
-        self.user_info = db.query(DbUsers).filter(DbUsers.id == user_id).first()
+        self.user_info = db.query(TblUsers).filter(TblUsers.id == user_id).first()
         
         if not self.user_info:
             self.response_error("User not found", status.HTTP_404_NOT_FOUND)
@@ -27,7 +27,7 @@ class TaskController:
         }
     
     def create_task(self, request: TasksBase):
-        new_task = DbTasks(
+        new_task = TblTasks(
             name = request.title,
             description = request.description,
             assignee_id = request.assignee_id,
@@ -46,7 +46,7 @@ class TaskController:
         return self.response_success("Task created", {"task_id": new_task.id})
 
     def update_task(self, task_id: int, request: TasksBase):
-        task = self.db.query(DbTasks).filter(DbTasks.id == task_id).first()
+        task = self.db.query(TblTasks).filter(TblTasks.id == task_id).first()
         if not task:
             return self.response_error("Task not found", status.HTTP_404_NOT_FOUND)
 
@@ -67,12 +67,12 @@ class TaskController:
     
 
     def get_tasks_by_status(self, status: str):
-        tasks = self.db.query(DbTasks).filter(DbTasks.status == status).all()
+        tasks = self.db.query(TblTasks).filter(TblTasks.status == status).all()
         return self.response_success(f"Tasks with status '{status}'", {"tasks": tasks})
     
 
     def get_my_tasks(self):
-        tasks = self.db.query(DbTasks).filter(DbTasks.assignee_id == self.user_info.id).all()
+        tasks = self.db.query(TblTasks).filter(TblTasks.assignee_id == self.user_info.id).all()
         return self.response_success("Tasks retrieved", {"tasks": tasks})
 
     def get_tasks_by_type(self, task_type: str):
@@ -80,11 +80,11 @@ class TaskController:
         if task_type not in valid_types:
             return self.response_error("Invalid task type", status.HTTP_400_BAD_REQUEST)
 
-        tasks = self.db.query(DbTasks).filter(DbTasks.type == task_type).all()
+        tasks = self.db.query(TblTasks).filter(TblTasks.type == task_type).all()
         return self.response_success(f"Tasks of type '{task_type}'", {"tasks": tasks})
 
     def update_task_status(self, task_id: int, new_status: str):
-        task = self.db.query(DbTasks).filter(DbTasks.id == task_id).first()
+        task = self.db.query(TblTasks).filter(TblTasks.id == task_id).first()
         if not task:
             return self.response_error("Task not found", status.HTTP_404_NOT_FOUND)
 
@@ -97,7 +97,7 @@ class TaskController:
     
 
     def get_task_detail(self, task_id: int):
-        task = self.db.query(DbTasks).filter(DbTasks.id == task_id).first()
+        task = self.db.query(TblTasks).filter(TblTasks.id == task_id).first()
         if not task:
             return self.response_error("Task not found", status.HTTP_404_NOT_FOUND)
 
@@ -105,7 +105,7 @@ class TaskController:
 
 
     def delete_task(self, task_id: int):
-        task = self.db.query(DbTasks).filter(DbTasks.id == task_id).first()
+        task = self.db.query(TblTasks).filter(TblTasks.id == task_id).first()
         if not task:
             return self.response_error("Task not found", status.HTTP_404_NOT_FOUND)
 
@@ -118,11 +118,11 @@ class TaskController:
 
     
     def assign_new_user(self, task_id: int, new_user_id: int):
-        task = self.db.query(DbTasks).filter(DbTasks.id == task_id).first()
+        task = self.db.query(TblTasks).filter(TblTasks.id == task_id).first()
         if not task:
             return self.response_error("Task not found", status.HTTP_404_NOT_FOUND)
 
-        new_user = self.db.query(DbUsers).filter(DbUsers.id == new_user_id).first()
+        new_user = self.db.query(TblUsers).filter(TblUsers.id == new_user_id).first()
         if not new_user:
             return self.response_error("New assignee not found", status.HTTP_404_NOT_FOUND)
 
@@ -132,11 +132,11 @@ class TaskController:
     
 
     def add_comment_to_task(self, task_id: int, comment_text: str):
-        task = self.db.query(DbTasks).filter(DbTasks.id == task_id).first()
+        task = self.db.query(TblTasks).filter(TblTasks.id == task_id).first()
         if not task:
             return self.response_error("Task not found", status.HTTP_404_NOT_FOUND)
 
-        comment = DbComments(
+        comment = TblComments(
             task_id=task_id,
             user_id=self.user_info.id,
             comment=comment_text,
@@ -148,15 +148,15 @@ class TaskController:
     
 
     def get_comments_for_task(self, task_id: int):
-        task = self.db.query(DbTasks).filter(DbTasks.id == task_id).first()
+        task = self.db.query(TblTasks).filter(TblTasks.id == task_id).first()
         if not task:
             return self.response_error("Task not found", status.HTTP_404_NOT_FOUND)
 
-        comments = self.db.query(DbComments).filter(DbComments.task_id == task_id).all()
+        comments = self.db.query(TblComments).filter(TblComments.task_id == task_id).all()
         return self.response_success("Comments retrieved", {"task_id": task_id, "comments": comments})
     
     def delete_comments(self, comment_id: int):
-        comment = self.db.query(DbComments).filter(DbComments.id == comment_id).first()
+        comment = self.db.query(TblComments).filter(TblComments.id == comment_id).first()
         if not comment:
             return self.response_error("Comment not found", status.HTTP_404_NOT_FOUND)
 
