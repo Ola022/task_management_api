@@ -13,7 +13,9 @@ def create_user(db: Session, request: UsersBase):
         password = Hash.bcrypt(request.password),
         email = request.email,
         role = request.role,
-        created_at = request.created_at, #datetime.datetime.now(),
+        title = request.title,
+        academic_rank = request.academic_rank,
+        created_at = str(datetime.datetime.now()),
         image_url = "none",        
     )
     db.add(new_user)
@@ -53,5 +55,16 @@ def get_user_by_email(db: Session, email: int):
         }
     }
 
-def get_user_by_email_for_login(db: Session, email: int):
+def get_user_by_email_for_login(db: Session, email: str):
     return db.query(TblUsers).filter(TblUsers.email == email).first()
+
+
+def get_all_users(db: Session):
+    user_info = db.query(TblUsers).all()
+    return {
+        "message": "Success",
+        "status_code": 200,
+        "data": user_info        
+    }
+    
+    

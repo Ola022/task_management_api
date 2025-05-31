@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm.session import Session
 from db.database import get_db
@@ -10,9 +11,16 @@ router = APIRouter(
     tags=["users"]
 )
 
-@router.post("/signup", response_model=UsersDisplay)
+@router.post("/signup")
 def create_user(request: UsersBase, db: Session = Depends(get_db)):
-    return users_controller.create_user(db, request)
+    user = users_controller.create_user(db, request)
+    return {
+        "message": "Success",
+        "status_code": 200,
+        "data": "User added successfully",
+        "user": UsersDisplay.model_validate(user)
+
+    }
 
 @router.get("/login")
 def login_user(email: str, password: str, db: Session = Depends(get_db)):
@@ -26,11 +34,19 @@ def login_user(email: str, password: str, db: Session = Depends(get_db)):
     return {
         "message": "Success",
         "status_code": 200,
-        "data": {
-            "user_info": user
-        }
+        "data": UsersDisplay.model_validate(user)        
     }
     
+
+@router.get("/all",)
+def get_All_Users(db: Session = Depends(get_db)):
+    return  users_controller.get_all_users(db)
+#@router.get("/all", response_model=List[UsersDisplay])
+#def get_all_users(db: Session = Depends(get_db)):
+#    users = users_controller.get_all_users(db)
+#   return [UsersDisplay.model_validate(user) for user in users]    
+
+
 
 #@router.get("/verify_user/{account_number}")
 #def check_balance(account_number: int, db: Session = Depends(get_db)):

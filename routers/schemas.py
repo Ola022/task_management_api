@@ -7,18 +7,23 @@ class UsersBase(BaseModel):
     email : str
     password : str
     role : int
-    created_at : datetime
-    image_url : str    
+    created_at : str
+    title : str
+    academic_rank : str
+    image_url : str        
 
 
 class UsersDisplay(BaseModel):
     full_name : str
     email : str    
     role : int
-    created_at : datetime    
+    created_at : str   
+    title : str
+    academic_rank : str 
     image_url : str
     class Config():
-        orm_mode = True
+        from_attributes = True  # replaces orm_mode
+        # orm_mode = True
         
         
 class TasksBase(BaseModel):     
@@ -30,8 +35,8 @@ class TasksBase(BaseModel):
     story_point: str
     priority: str
     status: str
-    created_at: datetime
-    due_date: datetime
+    created_at: str
+    due_date: str
     
     
 class TasksDisplay(BaseModel):
@@ -43,13 +48,13 @@ class TasksDisplay(BaseModel):
     story_point: str
     priority: str
     status: str    
-    due_date: datetime
+    due_date: str
     class Config():
-        orm_mode = True
+        from_attributes = True  # replaces orm_mod
         
 class Comments(BaseModel):        
     task_id: int
     user_id : int
     comment : str
-    created_at :datetime
+    created_at :str
      

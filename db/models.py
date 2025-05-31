@@ -9,8 +9,10 @@ class TblUsers(Base):
     email = Column(String)
     password = Column(String)
     role = Column(Integer)
-    created_at = Column(DateTime)
-    image_url = Column(String)    
+    created_at = Column(String)
+    title = Column(String)    
+    academic_rank = Column(String)      #Prof., Dr., Mr., Ms., Mrs.
+    image_url = Column(String)          #Senior Lecturer, Junior Lecturer, Lecturer I, Lecturer II
     
     
     
@@ -25,8 +27,8 @@ class TblTasks(Base):
     story_point = Column(String)            #Complexity or effort estimation
     priority = Column(String)               # Low / Medium / High / Critical
     status	 = Column(String)               #Pending / In Progress / Done
-    created_at = Column(DateTime)             
-    due_date = Column(DateTime)
+    created_at = Column(String)             
+    due_date = Column(String)
     #user_id  = Column(Integer, ForeignKey('user.id'))
     #user  = relationship('DbUser', back_populates='items')   
     
@@ -37,5 +39,5 @@ class TblComments(Base):
     task_id = Column(Integer)  
     user_id = Column(String)  
     comment = Column(String)
-    created_at = Column(DateTime)    
+    created_at = Column(String)    
     
