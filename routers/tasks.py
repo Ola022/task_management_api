@@ -26,6 +26,11 @@ def get_tasks_by_status(status: str, user_id: int, db: Session = Depends(get_db)
 def get_my_tasks(user_id: int, db: Session = Depends(get_db)):
     return TaskController(db, user_id).get_my_tasks()
 
+# Get All tasks 
+@router.get("/all/{user_id}")
+def get_my_tasks(user_id: int, db: Session = Depends(get_db)):
+    return TaskController(db, user_id).get_all_tasks()    
+
 # Get tasks by type (e.g. "Meeting", "Event", "Task")
 @router.get("/type/{task_type}/{user_id}")
 def get_tasks_by_type(task_type: str, user_id: int, db: Session = Depends(get_db)):

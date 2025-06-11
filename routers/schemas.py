@@ -14,6 +14,7 @@ class UsersBase(BaseModel):
 
 
 class UsersDisplay(BaseModel):
+    id: int
     full_name : str
     email : str    
     role : int
@@ -31,7 +32,7 @@ class TasksBase(BaseModel):
     description: str
     types: str
     assignee_id: int
-    reporter_id: int
+    assignor_id: int
     story_point: str
     priority: str
     status: str
@@ -44,7 +45,7 @@ class TasksDisplay(BaseModel):
     description: str
     types: str
     assignee_id: int
-    reporter_id: int
+    assignor_id: int
     story_point: str
     priority: str
     status: str    
@@ -56,5 +57,4 @@ class Comments(BaseModel):
     task_id: int
     user_id : int
     comment : str
-    created_at :str
-     
+    timestamp :datetime    

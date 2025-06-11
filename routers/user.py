@@ -34,6 +34,7 @@ def login_user(email: str, password: str, db: Session = Depends(get_db)):
     return {
         "message": "Success",
         "status_code": 200,
+        #"data": user
         "data": UsersDisplay.model_validate(user)        
     }
     

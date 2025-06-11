@@ -28,16 +28,16 @@ class TaskController:
     
     def create_task(self, request: TasksBase):
         new_task = TblTasks(
-            name = request.title,
+            title = request.title,
             description = request.description,
             assignee_id = request.assignee_id,
-            reporter_id = self.user_info.id,
+            assignor_id = self.user_info.id,
             story_point = request.story_point,
             priority = request.priority,
             types = request.types,
-            status = "Pending",
+            status = request.status, #"Pending",
             due_date = request.due_date,
-            created_at = datetime.datetime.now()
+            created_at = request.created_at, #datetime.datetime.now()
         )
         self.db.add(new_task)
         self.db.commit()
@@ -50,8 +50,8 @@ class TaskController:
         if not task:
             return self.response_error("Task not found", status.HTTP_404_NOT_FOUND)
 
-        if task.reporter_id != self.user_info.id:
-            return self.response_error("Only reporter can update this task", status.HTTP_403_FORBIDDEN)
+        if task.assignor_id != self.user_info.id:
+            return self.response_error("Only Assignor can update this task", status.HTTP_403_FORBIDDEN)
 
         task.title = request.title
         task.description = request.description
@@ -70,9 +70,12 @@ class TaskController:
         tasks = self.db.query(TblTasks).filter(TblTasks.status == status).all()
         return self.response_success(f"Tasks with status '{status}'", {"tasks": tasks})
     
+    def get_all_tasks(self):
+        tasks = self.db.query(TblTasks).all()
+        return self.response_success("Tasks retrieved", {"tasks": tasks})
 
     def get_my_tasks(self):
-        tasks = self.db.query(TblTasks).filter(TblTasks.assignee_id == self.user_info.id).all()
+        tasks = self.db.query(TblTasks).filter(TblTasks.assignor_id == self.user_info.id).all()
         return self.response_success("Tasks retrieved", {"tasks": tasks})
 
     def get_tasks_by_type(self, task_type: str):
@@ -88,7 +91,7 @@ class TaskController:
         if not task:
             return self.response_error("Task not found", status.HTTP_404_NOT_FOUND)
 
-        if task.assignee_id != self.user_info.id:
+        if task.assignee_id != self.user_info.id and task.assignor_id != self.user_info.id :
             return self.response_error("You are not allowed to update this task", status.HTTP_403_FORBIDDEN)
 
         task.status = new_status
@@ -109,8 +112,8 @@ class TaskController:
         if not task:
             return self.response_error("Task not found", status.HTTP_404_NOT_FOUND)
 
-        if task.reporter_id != self.user_info.id:
-            return self.response_error("Only reporter can delete this task", status.HTTP_403_FORBIDDEN)
+        if task.assignor_id != self.user_info.id:
+            return self.response_error("Only assignor can delete this task", status.HTTP_403_FORBIDDEN)
 
         self.db.delete(task)
         self.db.commit()
@@ -147,13 +150,36 @@ class TaskController:
         return self.response_success("Comment added to task", {"task_id": task_id, "comment": comment_text})
     
 
-    def get_comments_for_task(self, task_id: int):
+    def get_comments_for_taskk(self, task_id: int):
         task = self.db.query(TblTasks).filter(TblTasks.id == task_id).first()
         if not task:
             return self.response_error("Task not found", status.HTTP_404_NOT_FOUND)
 
         comments = self.db.query(TblComments).filter(TblComments.task_id == task_id).all()
         return self.response_success("Comments retrieved", {"task_id": task_id, "comments": comments})
+        
+    def get_comments_for_task(self, task_id: int):
+        task = self.db.query(TblTasks).filter(TblTasks.id == task_id).first()
+        if not task:
+            return self.response_error("Task not found", status.HTTP_404_NOT_FOUND)
+
+        comments = (self.db.query(TblComments).filter(TblComments.task_id == task_id).all())
+
+        # Attach full_name to each comment
+        comments_with_names = []
+        for comment in comments:
+            user = self.db.query(TblUsers).filter(TblUsers.id == comment.user_id).first()
+            full_name = user.full_name if user else "No Name"
+            comments_with_names.append({
+                "id": comment.id,
+                "task_id": comment.task_id,
+                "user_id": comment.user_id,
+                "full_name": full_name,
+                "comment": comment.comment,
+                "timestamp": comment.timestamp.isoformat() if comment.timestamp else None
+            })
+
+        return self.response_success("Comments retrieved", {"task_id": task_id, "comments": comments_with_names})
     
     def delete_comments(self, comment_id: int):
         comment = self.db.query(TblComments).filter(TblComments.id == comment_id).first()

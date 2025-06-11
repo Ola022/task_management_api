@@ -23,7 +23,7 @@ class TblTasks(Base):
     description = Column(String)            #Task body
     types = Column(String)                  #Task type: Task / Meeting / Event
     assignee_id = Column(Integer)           #Who is responsible
-    reporter_id = Column(Integer)           #Who is reporting the task
+    assignor_id = Column(Integer)           #Who is reporting the task
     story_point = Column(String)            #Complexity or effort estimation
     priority = Column(String)               # Low / Medium / High / Critical
     status	 = Column(String)               #Pending / In Progress / Done
@@ -37,7 +37,7 @@ class TblComments(Base):
     __tablename__ = 'tbl_comments'
     id = Column(Integer, primary_key=True, index=True)    
     task_id = Column(Integer)  
-    user_id = Column(String)  
+    user_id = Column(Integer)  
     comment = Column(String)
-    created_at = Column(String)    
+    timestamp = Column(DateTime)    
     
