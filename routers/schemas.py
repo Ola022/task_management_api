@@ -1,7 +1,8 @@
 from pydantic import BaseModel
 from datetime import datetime
 from sqlalchemy import DateTime
-
+from typing import List, Optional
+from datetime import date, time
 class UsersBase(BaseModel):       
     full_name : str
     email : str
@@ -58,3 +59,23 @@ class Comments(BaseModel):
     user_id : int
     comment : str
     timestamp :datetime    
+
+class MeetingBase(BaseModel):
+    title: str
+    agenda: Optional[str] = None
+    organizer: str
+    participants: List[str]
+    locationType: str
+    types: Optional[str] = None
+    url: Optional[str] = None
+    venue: Optional[str] = None
+    status: str
+    date: date
+    time: time  # or time if you use Time column
+
+
+class MeetingDisplay(MeetingBase):
+    id: int
+
+    class Config:
+        orm_mode = True

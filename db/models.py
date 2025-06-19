@@ -1,5 +1,5 @@
 from .database  import Base
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Time
 from sqlalchemy.orm import relationship
 
 class TblUsers(Base):
@@ -40,4 +40,19 @@ class TblComments(Base):
     user_id = Column(Integer)  
     comment = Column(String)
     timestamp = Column(DateTime)    
+    
+class TblMeetings(Base):
+    __tablename__ = 'tbl_meetings'
+    id = Column(Integer, primary_key=True, index=True)    
+    title = Column(String)  
+    agenda = Column(String)  
+    organizer = Column(String)
+    participant = Column(String)    
+    locationType = Column(String)
+    types = Column(String)
+    url = Column(String)
+    venue = Column(String)
+    status = Column(String)
+    date = Column(DateTime)
+    time = Column(Time)  
     
