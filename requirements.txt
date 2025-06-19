@@ -6,3 +6,4 @@ python-multipart
 aiofiles
 bcrypt
 passlib
+sendgrid

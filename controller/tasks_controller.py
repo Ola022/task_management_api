@@ -3,6 +3,11 @@ from sqlalchemy.orm import Session
 from db.models import TblUsers, TblTasks, TblComments
 from routers.schemas import TasksBase, TasksDisplay
 import datetime
+
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 class TaskController:
 
     def __init__(self, db: Session, user_id: int):
@@ -26,6 +31,32 @@ class TaskController:
             "data": {"error": error},
         }
     
+    def send_email(self, to_email: str, subject: str, body: str):
+        # Configure your SMTP server and credentials        
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        
+        #smtp_user = "orlam0222@gmail.com" #ajnd ooah ddkd pant
+        #smtp_password = "ajndooahddkdpant"  #`ajnd ooah ddkd pant` 16-char app password, no spaces
+        smtp_user = "orlamtesting0222@gmail.com" 
+        smtp_password = "tohksrovckqvqjrk"  #`tohk srov ckqv qjrk` 16-char app password, no spaces
+        
+        msg = MIMEMultipart()
+        msg["From"] = smtp_user
+        msg["To"] = to_email
+        msg["Subject"] = subject
+        msg.attach(MIMEText(body, "plain"))
+
+        try:
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls()
+            server.login(smtp_user, smtp_password)
+            server.sendmail(smtp_user, to_email, msg.as_string())
+            print(f"send email to {to_email}")
+            server.quit()
+        except Exception as e:
+            print(f"Failed to send email: {e}")
+
     def create_task(self, request: TasksBase):
         new_task = TblTasks(
             title = request.title,
@@ -42,6 +73,13 @@ class TaskController:
         self.db.add(new_task)
         self.db.commit()
         self.db.refresh(new_task)
+
+          # Fetch assignor email
+        assignee = self.db.query(TblUsers).filter(TblUsers.id == request.assignee_id).first()
+        if assignee and assignee.email:
+            subject = "You have been assigned a new task"
+            body = f"Hello {assignee.full_name},\n\nYou have been assigned a new task: '{new_task.title}'."
+            self.send_email(assignee.email, subject, body)
 
         return self.response_success("Task created", {"task_id": new_task.id})
 
@@ -63,6 +101,12 @@ class TaskController:
         task.due_date = request.due_date
 
         self.db.commit()
+
+        assignee = self.db.query(TblUsers).filter(TblUsers.id == request.assignee_id).first()
+        if assignee and assignee.email:
+            subject = "You have been assigned a new task"
+            body = f"Hello {assignee.full_name},\n\nYou have been assigned a new task: '{task.title}'."
+            self.send_email(assignee.email, subject, body)
         return self.response_success("Task updated successfully", {"task_id": task.id})
     
 
@@ -96,6 +140,14 @@ class TaskController:
 
         task.status = new_status
         self.db.commit()
+
+        assignee = self.db.query(TblUsers).filter(TblUsers.id == task.assignee_id).first()
+        print(assignee.email)
+        if assignee and assignee.email:
+            subject = "You have been assigned a new task"
+            body = f"Hello {assignee.full_name},\n\nYou have been assigned a new task: '{task.title}'."
+            self.send_email(assignee.email, subject, body)
+        
         return self.response_success("Task status updated", {"task_id": task.id, "new_status": task.status})
     
 
