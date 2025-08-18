@@ -24,3 +24,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+
+import os
+import uvicorn
+
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 8080))  # Railway assigns PORT
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
