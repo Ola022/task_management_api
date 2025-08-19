@@ -16,7 +16,7 @@ def root():
 
 models.Base.metadata.create_all(engine)
 
-origins = ["https://taskmanagementwebapps.netlify.app", "http://localhost:4200" ]
+origins = ["https://taskmanagementwebapps.netlify.app/", "http://localhost:4200" ]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
