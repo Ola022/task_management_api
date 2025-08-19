@@ -34,27 +34,10 @@ def login_user(email: str, password: str, db: Session = Depends(get_db)):
     return {
         "message": "Success",
         "status_code": 200,
-        #"data": user
-        "data": UsersDisplay.model_validate(user)        
+        "data": user
+        #"data": UsersDisplay.model_validate(user)        
     }
-@router.get("/logins")
-def login_user(email: str, password: str, db: Session = Depends(get_db)):
-    user = db_user.get_user_by_email(db, email)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, data="User not found")
     
-    if not Hash.verify(user.password, password):  # Assuming verify function exists
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, data="Incorrect password")
-    
-    return {
-        "message": "Success",
-        "status_code": 200,
-        "data": {
-            "user_info": user
-        }
-    }
-    return {"message": "Login successful", "data":user}
-
 @router.get("/all",)
 def get_All_Users(db: Session = Depends(get_db)):
     return  users_controller.get_all_users(db)
