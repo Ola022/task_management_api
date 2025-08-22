@@ -47,8 +47,9 @@ def get_all_projects(user_id: int, include_tasks: bool = False, db: Session = De
 #@router.put("/update/{user_id}/{project_id}")
 #def update_project(user_id: int, project_id: int, request: ProjectBase, db: Session = Depends(get_db)):
 #    return ProjectController(db, user_id).update_project(project_id, request)
-@router.put("/update/{project_id}")
+@router.put("/update/{user_id}/{project_id}")
 def update_project(
+    user_id: int,
     project_id: int,
     name: str = Form(None),
     description: str = Form(None),
@@ -56,13 +57,14 @@ def update_project(
     image: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
-    return ProjectController(db, None).update_project(
+    return ProjectController(db, user_id).update_project(
         project_id,
         name=name,
         description=description,
         due_date=due_date,
         image=image
     )
+
 
 @router.put("/{project_id}/image")
 def update_project_image(project_id: int, image: UploadFile = File(...), db: Session = Depends(get_db)):
