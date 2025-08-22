@@ -1,14 +1,18 @@
 from fastapi import FastAPI
 from db import models
 from db.database import engine
-from routers import meetings, tasks, user
+from routers import meetings, tasks, user, project
 from fastapi.middleware.cors import CORSMiddleware
-
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 app.include_router(user.router)
+app.include_router(project.router)
 app.include_router(tasks.router)
 app.include_router(meetings.router)
+
+# Serve static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 def root():

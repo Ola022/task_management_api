@@ -1,6 +1,7 @@
 from .database  import Base
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Time
+from sqlalchemy import Column, ForeignKey, Integer, String, Text, DateTime, Time
 from sqlalchemy.orm import relationship
+from datetime import datetime
 
 class TblUsers(Base):
     __tablename__ = 'tbl_users'
@@ -13,26 +14,33 @@ class TblUsers(Base):
     title = Column(String)    
     academic_rank = Column(String)      #Prof., Dr., Mr., Ms., Mrs.
     image_url = Column(String)          #Senior Lecturer, Junior Lecturer, Lecturer I, Lecturer II
-    
+    projects = relationship(
+        "TblProjects",
+        back_populates="owner",
+        cascade="all, delete-orphan"
+    )
     
 class TblProjects(Base):
     __tablename__ = "tbl_projects"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)               # Project name
-    description = Column(String)                        # Project details
-    owner_id = Column(Integer)                          # Who owns/created the project
-    created_at = Column(String)
-    due_date = Column(String)
+    name = Column(String, nullable=False)                           # Project name
+    description = Column(Text, nullable=True)                       # Project details
+    owner_id = Column(Integer, ForeignKey("tbl_users.id"))          # Who owns/created the project
+    created_at = Column(String, nullable=True)
+    due_date = Column(String, nullable=True)
+    updated_at  = Column(String, nullable=True)
+    image = Column(String, nullable=True)                           # store filename or URL
 
     # Relationship: one project -> many tasks
-    tasks = relationship("TblTasks", back_populates="project")
-    
+    tasks = relationship("TblTasks", back_populates="project", cascade="all, delete-orphan")
+    owner = relationship("TblUsers", back_populates="projects")
+
 
 class TblTasks(Base):
     __tablename__ = 'tbl_tasks'
     id = Column(Integer, primary_key=True, index=True)    
-    project_id = Column(Integer, ForeignKey("tbl_projects.id"))  # Link to project
+    project_id = Column(Integer, ForeignKey("tbl_projects.id", ondelete="CASCADE"))  # Link to project
     
     title = Column(String)                  #Task title
     description = Column(String)            #Task body
@@ -40,15 +48,13 @@ class TblTasks(Base):
     assignee_id = Column(Integer)           #Who is responsible
     assignor_id = Column(Integer)           #Who is reporting the task
     story_point = Column(String)            #Complexity or effort estimation
-    priority = Column(String)               # Low / Medium / High / Critical
+    priority = Column(String)               #Low / Medium / High / Critical
     status	 = Column(String)               #Pending / In Progress / Done
     created_at = Column(String)             
     due_date = Column(String)
 
     # Relationship back to project
-    project = relationship("TblProjects", back_populates="tasks")
-    #user_id  = Column(Integer, ForeignKey('user.id'))
-    #user  = relationship('DbUser', back_populates='items')   
+    project = relationship("TblProjects", back_populates="tasks")    
     
     
 class TblComments(Base):

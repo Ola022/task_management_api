@@ -1,9 +1,15 @@
 from fastapi import status
 from sqlalchemy.orm import Session
 from db.models import TblUsers, TblProjects
-from routers.schemas import ProjectBase
-import datetime
+from routers.schemas import ProjectBase, ProjectDisplay, ProjectLightDisplay
+from pathlib import Path
+import shutil
+import os, uuid, time
+from fastapi import UploadFile
+from datetime import datetime
 
+UPLOAD_DIR = Path("static/uploads/projects")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 class ProjectController:
 
@@ -30,50 +36,128 @@ class ProjectController:
 
     # ---------------- CRUD METHODS ----------------
 
-    def create_project(self, request: ProjectBase):
+    def create_project(self, request: ProjectBase,  image: UploadFile = None):
+         # save image if provided
+        filename = None
+        if image:
+            ext = os.path.splitext(image.filename)[1]  # keep original extension
+            filename = f"{int(time.time())}_{uuid.uuid4().hex}{ext}"
+            filepath = UPLOAD_DIR / filename
+                        
+            with open(filepath, "wb") as buffer:
+                shutil.copyfileobj(image.file, buffer)
+
         new_project = TblProjects(
             name=request.name,
             description=request.description,
             owner_id=self.user_info.id,
-            created_at=request.created_at,  # or datetime.datetime.now()
+            created_at=datetime.utcnow().isoformat(),  
+            updated_at=datetime.utcnow().isoformat(),
             due_date=request.due_date,
+            image=filename
         )
         self.db.add(new_project)
         self.db.commit()
         self.db.refresh(new_project)
 
-        return self.response_success("Project created", {"project_id": new_project.id})
+        return self.response_success("Project created",     
+                                     {"project": ProjectLightDisplay.model_validate(new_project)}
+)
 
     def get_project(self, project_id: int):
         project = self.db.query(TblProjects).filter(TblProjects.id == project_id).first()
         if not project:
             return self.response_error("Project not found", status.HTTP_404_NOT_FOUND)
 
-        return self.response_success("Project fetched", {"project": project})
-
-    def get_all_projects(self):
+        return self.response_success("Project fetched", {"project": ProjectLightDisplay.model_validate(project)})
+    
+    def get_all_projects(self, include_tasks: bool = False):
         projects = self.db.query(TblProjects).all()
-        return self.response_success("Projects fetched", {"projects": projects})
 
-    def update_project(self, project_id: int, request: ProjectBase):
+        if include_tasks:
+            return self.response_success(
+                "Projects with tasks fetched",
+                {"projects": [ProjectDisplay.model_validate(p) for p in projects]}
+            )
+        
+        return self.response_success(
+            "Projects fetched",
+            {"projects": [ProjectLightDisplay.model_validate(p) for p in projects]})
+
+    #def get_all_projects(self):
+    #    projects = self.db.query(TblProjects).all()
+    #    return self.response_success("Projects fetched", {"projects": projects})
+    def update_project(self, project_id: int, name: str = None, description: str = None,
+                   due_date: str = None, image: UploadFile = None):
         project = self.db.query(TblProjects).filter(TblProjects.id == project_id).first()
         if not project:
             return self.response_error("Project not found", status.HTTP_404_NOT_FOUND)
 
-        project.name = request.name
-        project.description = request.description
-        project.due_date = request.due_date
-        project.created_at = request.created_at  # careful if you want to update this
+        # Update only provided fields
+        if name is not None:
+            project.name = name
+        if description is not None:
+            project.description = description
+        if due_date is not None:
+            project.due_date = due_date
 
+        # Handle image update
+        if image:
+            ext = os.path.splitext(image.filename)[1]
+            filename = f"{int(time.time())}_{uuid.uuid4().hex}{ext}"
+            filepath = UPLOAD_DIR / filename
+
+            with open(filepath, "wb") as buffer:
+                shutil.copyfileobj(image.file, buffer)
+
+            # Remove old image if exists
+            if project.image:
+                old_path = UPLOAD_DIR / project.image
+                if old_path.exists():
+                    old_path.unlink()
+
+            project.image = filename
+
+        project.updated_at = datetime.utcnow()
         self.db.commit()
         self.db.refresh(project)
 
         return self.response_success("Project updated", {"project_id": project.id})
 
+    def update_project_image(self, project_id: int, image: UploadFile):
+        project = self.db.query(TblProjects).filter(TblProjects.id == project_id).first()
+        if not project:
+            return self.response_error("Project not found", status.HTTP_404_NOT_FOUND)
+
+        ext = os.path.splitext(image.filename)[1]
+        filename = f"{int(time.time())}_{uuid.uuid4().hex}{ext}"
+        filepath = UPLOAD_DIR / filename
+
+        with open(filepath, "wb") as buffer:
+            shutil.copyfileobj(image.file, buffer)
+
+        if project.image:
+            old_path = UPLOAD_DIR / project.image
+            if old_path.exists():
+                old_path.unlink()
+
+        project.image = filename
+        project.updated_at = datetime.utcnow()
+
+        self.db.commit()
+        self.db.refresh(project)
+
+        return self.response_success("Image updated", {"image": filename})
+
+
     def delete_project(self, project_id: int):
         project = self.db.query(TblProjects).filter(TblProjects.id == project_id).first()
         if not project:
             return self.response_error("Project not found", status.HTTP_404_NOT_FOUND)
+        if project.image:
+            filepath = UPLOAD_DIR / project.image
+            if filepath.exists():
+                filepath.unlink()  # deletes the file safely
 
         self.db.delete(project)
         self.db.commit()
@@ -89,11 +173,5 @@ class ProjectController:
 
         # thanks to relationship in models, tasks are accessible
         return self.response_success("Project and tasks fetched", {
-            "project": {
-                "id": project.id,
-                "name": project.name,
-                "description": project.description,
-                "due_date": project.due_date,
-                "tasks": project.tasks
-            }
+            "project": {ProjectDisplay.model_validate(project)}
         })

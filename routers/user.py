@@ -8,7 +8,7 @@ from controller import users_controller
 
 router = APIRouter(
     prefix="/users",
-    tags=["users"]
+    tags=["Users"]
 )
 
 @router.post("/signup")

@@ -7,7 +7,7 @@ from routers.schemas import TasksBase
 
 router = APIRouter(
     prefix="/task", 
-    tags=["Task"]
+    tags=["Tasks"]
     )
 
 

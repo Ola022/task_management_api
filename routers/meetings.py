@@ -6,7 +6,7 @@ from routers.schemas import MeetingBase
 
 router = APIRouter(
     prefix="/meeting",
-    tags=["Meeting"]
+    tags=["Meetings"]
 )
 
 # Create a new meeting

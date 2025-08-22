@@ -1,8 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator, root_validator
 from datetime import datetime
 from sqlalchemy import DateTime
 from typing import List, Optional
 from datetime import date, time
+
+BASE_URL = "http://127.0.0.1:8000"   # change in production
+STATIC_PATH = "/static/uploads/projects/"
 class UsersBase(BaseModel):       
     full_name : str
     email : str
@@ -43,13 +46,13 @@ class TasksDisplay(BaseModel):
     id: int
     project_id: int
     title: str
-    description: str
-    types: str
+    description:  Optional[str] = None
+    types:  Optional[str] = None
     assignee_id: int
     assignor_id: int
-    story_point: str
-    priority: str
-    status: str    
+    story_point:  Optional[str] = None
+    priority:  Optional[str] = None
+    status:  Optional[str] = None    
     due_date: str
     class Config():
         from_attributes = True  # replaces orm_mod
@@ -57,23 +60,49 @@ class TasksDisplay(BaseModel):
 #---------------- PROJECT SCHEMAS ----------------
 class ProjectBase(BaseModel):
     name: str
-    description: Optional[str] = None
-    owner_id: int
-    created_at: str
-    due_date: str
+    description: Optional[str] = None    
+    due_date: Optional[str] = None
+    updated_at: Optional[str] = None
+
 
 class ProjectDisplay(BaseModel):
     id: int
     name: str
-    description: Optional[str]
+    description: Optional[str]= None
     owner_id: int
-    created_at: str
-    due_date: str
+    created_at:  Optional[str] = None
+    due_date:  Optional[str] = None
+    updated_at: Optional[str] = None
+    image: Optional[str]
+    image_url: Optional[str] = None
     tasks: List[TasksDisplay] = []          # Nested tasks
-
     class Config:
         from_attributes = True
+    
+    @model_validator(mode="after")
+    def add_image_url(self):
+        if self.image:
+            self.image_url = f"{BASE_URL}{STATIC_PATH}{self.image}"
+        return self
         
+class ProjectLightDisplay(BaseModel): # Light version (no tasks)
+    id: int
+    name: str
+    description: Optional[str]= None
+    owner_id: int
+    created_at:  Optional[str] = None
+    due_date:  Optional[str] = None
+    updated_at: Optional[str] = None
+    image: Optional[str]
+    image_url: Optional[str] = None
+    class Config:
+        from_attributes = True
+
+    @model_validator(mode="after")
+    def add_image_url(self):
+        if self.image:
+            self.image_url = f"{BASE_URL}{STATIC_PATH}{self.image}"
+        return self
 
 class Comments(BaseModel):        
     task_id: int
