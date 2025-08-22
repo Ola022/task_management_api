@@ -4,7 +4,8 @@ from sqlalchemy import DateTime
 from typing import List, Optional
 from datetime import date, time
 
-BASE_URL = "http://127.0.0.1:8000"   # change in production
+BASE_URL = "https://taskmanagementapi-production-d6fa.up.railway.app"   # change in production
+#BASE_URL = "http://127.0.0.1:8000"   # change in production
 STATIC_PATH = "/static/uploads/projects/"
 class UsersBase(BaseModel):       
     full_name : str
