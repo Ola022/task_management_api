@@ -142,7 +142,6 @@ class TaskController:
             TblTasks.project_id == project_id
         ).all()
         return self.response_success("Tasks retrieved", {"tasks": tasks})
-    tasks})
 
 # Get tasks by type under a project
     def get_tasks_by_type(self, project_id: int, task_type: str):
