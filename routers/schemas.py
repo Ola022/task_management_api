@@ -26,29 +26,6 @@ class UsersDisplay(BaseModel):
     class Config():
         from_attributes = True  # replaces orm_mode
         # orm_mode = True
-
- #---------------- PROJECT SCHEMAS ----------------
-class ProjectBase(BaseModel):
-    name: str
-    description: Optional[str] = None
-    owner_id: int
-    created_at: str
-    due_date: str
-
-
-class ProjectDisplay(BaseModel):
-    id: int
-    name: str
-    description: Optional[str]
-    owner_id: int
-    created_at: str
-    due_date: str
-    tasks: List[TasksDisplay] = []          # Nested tasks
-
-    class Config:
-        from_attributes = True
-
-        
 class TasksBase(BaseModel):    
     project_id: int
     title: str
@@ -61,7 +38,6 @@ class TasksBase(BaseModel):
     status: str
     created_at: str
     due_date: str
-    
     
 class TasksDisplay(BaseModel):
     id: int
@@ -77,7 +53,28 @@ class TasksDisplay(BaseModel):
     due_date: str
     class Config():
         from_attributes = True  # replaces orm_mod
+
+#---------------- PROJECT SCHEMAS ----------------
+class ProjectBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    owner_id: int
+    created_at: str
+    due_date: str
+
+class ProjectDisplay(BaseModel):
+    id: int
+    name: str
+    description: Optional[str]
+    owner_id: int
+    created_at: str
+    due_date: str
+    tasks: List[TasksDisplay] = []          # Nested tasks
+
+    class Config:
+        from_attributes = True
         
+
 class Comments(BaseModel):        
     task_id: int
     user_id : int
