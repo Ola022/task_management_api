@@ -16,25 +16,45 @@ router = APIRouter(
 def create_task(user_id: int, request: TasksBase, db: Session = Depends(get_db)):
     return TaskController(db, user_id).create_task(request)
 
+# Get tasks by status under a project
+@router.get("/status/{project_id}/{status}/{user_id}")
+def get_tasks_by_status(project_id: int, status: str, user_id: int, db: Session = Depends(get_db)):
+    return TaskController(db, user_id).get_tasks_by_status(project_id, status)
+
+# Get tasks assigned to me under a project
+@router.get("/mine/{project_id}/{user_id}")
+def get_my_tasks(project_id: int, user_id: int, db: Session = Depends(get_db)):
+    return TaskController(db, user_id).get_my_tasks(project_id)
+
+# Get all tasks under a project
+@router.get("/all/{project_id}/{user_id}")
+def get_all_tasks(project_id: int, user_id: int, db: Session = Depends(get_db)):
+    return TaskController(db, user_id).get_all_tasks(project_id)
+
+# Get tasks by type under a project
+@router.get("/type/{project_id}/{task_type}/{user_id}")
+def get_tasks_by_type(project_id: int, task_type: str, user_id: int, db: Session = Depends(get_db)):
+    return TaskController(db, user_id).get_tasks_by_type(project_id, task_type)
+
 # Get tasks by status (e.g. "in-progress", "completed")
-@router.get("/status/{status}/{user_id}")
-def get_tasks_by_status(status: str, user_id: int, db: Session = Depends(get_db)):
-    return TaskController(db, user_id).get_tasks_by_status(status)
+# @router.get("/status/{status}/{user_id}")
+#def get_tasks_by_status(status: str, user_id: int, db: Session = Depends(get_db)):
+#    return TaskController(db, user_id).get_tasks_by_status(status)
 
 # Get tasks assigned to me
-@router.get("/mine/{user_id}")
-def get_my_tasks(user_id: int, db: Session = Depends(get_db)):
-    return TaskController(db, user_id).get_my_tasks()
+#@router.get("/mine/{user_id}")
+#def get_my_tasks(user_id: int, db: Session = Depends(get_db)):
+#    return TaskController(db, user_id).get_my_tasks()
 
 # Get All tasks 
-@router.get("/all/{user_id}")
-def get_my_tasks(user_id: int, db: Session = Depends(get_db)):
-    return TaskController(db, user_id).get_all_tasks()    
+# @router.get("/all/{user_id}")
+#def get_my_tasks(user_id: int, db: Session = Depends(get_db)):
+#    return TaskController(db, user_id).get_all_tasks()    
 
 # Get tasks by type (e.g. "Meeting", "Event", "Task")
-@router.get("/type/{task_type}/{user_id}")
-def get_tasks_by_type(task_type: str, user_id: int, db: Session = Depends(get_db)):
-    return TaskController(db, user_id).get_tasks_by_type(task_type)
+# @router.get("/type/{task_type}/{user_id}")
+#def get_tasks_by_type(task_type: str, user_id: int, db: Session = Depends(get_db)):
+#    return TaskController(db, user_id).get_tasks_by_type(task_type)
 
 # Get details for a single task
 @router.get("/detail/{task_id}/{user_id}")
