@@ -15,10 +15,25 @@ class TblUsers(Base):
     image_url = Column(String)          #Senior Lecturer, Junior Lecturer, Lecturer I, Lecturer II
     
     
+class TblProjects(Base):
+    __tablename__ = "tbl_projects"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)               # Project name
+    description = Column(String)                        # Project details
+    owner_id = Column(Integer)                          # Who owns/created the project
+    created_at = Column(String)
+    due_date = Column(String)
+
+    # Relationship: one project -> many tasks
+    tasks = relationship("TblTasks", back_populates="project")
     
+
 class TblTasks(Base):
     __tablename__ = 'tbl_tasks'
     id = Column(Integer, primary_key=True, index=True)    
+    project_id = Column(Integer, ForeignKey("tbl_projects.id"))  # Link to project
+    
     title = Column(String)                  #Task title
     description = Column(String)            #Task body
     types = Column(String)                  #Task type: Task / Meeting / Event
@@ -29,6 +44,9 @@ class TblTasks(Base):
     status	 = Column(String)               #Pending / In Progress / Done
     created_at = Column(String)             
     due_date = Column(String)
+
+    # Relationship back to project
+    project = relationship("TblProjects", back_populates="tasks")
     #user_id  = Column(Integer, ForeignKey('user.id'))
     #user  = relationship('DbUser', back_populates='items')   
     
