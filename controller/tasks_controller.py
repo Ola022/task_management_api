@@ -1,6 +1,6 @@
 from fastapi import status
 from sqlalchemy.orm import Session
-from db.models import TblUsers, TblTasks, TblComments
+from db.models import TblUsers, TblTasks, TblComments, TblProjects
 from routers.schemas import TasksBase, TasksDisplay
 import datetime
 
@@ -58,7 +58,13 @@ class TaskController:
             print(f"Failed to send email: {e}")
 
     def create_task(self, request: TasksBase):
+          # Check project exists
+        project = self.db.query(TblProjects).filter(TblProjects.id == request.project_id).first()
+        if not project:
+            return self.response_error("Project not found", status.HTTP_404_NOT_FOUND)
+
         new_task = TblTasks(
+            project_id = request.project_id,    # <<< NEW
             title = request.title,
             description = request.description,
             assignee_id = request.assignee_id,
@@ -90,7 +96,12 @@ class TaskController:
 
         if task.assignor_id != self.user_info.id:
             return self.response_error("Only Assignor can update this task", status.HTTP_403_FORBIDDEN)
-
+         # Validate project if updated
+        if request.project_id:
+            project = self.db.query(TblProjects).filter(TblProjects.id == request.project_id).first()
+            if not project:
+                return self.response_error("Project not found", status.HTTP_404_NOT_FOUND)
+        task.project_id = request.project_id 
         task.title = request.title
         task.description = request.description
         task.assignee_id = request.assignee_id
@@ -114,13 +125,23 @@ class TaskController:
         tasks = self.db.query(TblTasks).filter(TblTasks.status == status).all()
         return self.response_success(f"Tasks with status '{status}'", {"tasks": tasks})
     
-    def get_all_tasks(self):
-        tasks = self.db.query(TblTasks).all()
+    def get_all_tasks(self, project_id: int = None):
+        query = self.db.query(TblTasks)
+        if project_id:
+            query = query.filter(TblTasks.project_id == project_id)
+        tasks = query.all()
         return self.response_success("Tasks retrieved", {"tasks": tasks})
 
-    def get_my_tasks(self):
-        tasks = self.db.query(TblTasks).filter(TblTasks.assignor_id == self.user_info.id).all()
+    def get_my_tasks(self, project_id: int = None):
+        query = self.db.query(TblTasks).filter(TblTasks.assignor_id == self.user_info.id)
+        if project_id:
+            query = query.filter(TblTasks.project_id == project_id)
+        tasks = query.all()
         return self.response_success("Tasks retrieved", {"tasks": tasks})
+
+    #def get_my_tasks(self):
+     #   tasks = self.db.query(TblTasks).filter(TblTasks.assignor_id == self.user_info.id).all()
+      #  return self.response_success("Tasks retrieved", {"tasks": tasks})
 
     def get_tasks_by_type(self, task_type: str):
         valid_types = ["Meeting", "Event", "Task"]
