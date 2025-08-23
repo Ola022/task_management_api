@@ -120,36 +120,47 @@ class TaskController:
             self.send_email(assignee.email, subject, body)
         return self.response_success("Task updated successfully", {"task_id": task.id})
     
-
-    def get_tasks_by_status(self, status: str):
-        tasks = self.db.query(TblTasks).filter(TblTasks.status == status).all()
+    def get_tasks_by_status(self, project_id: int, status: str):
+        tasks = self.db.query(TblTasks).filter(
+            TblTasks.status == status,
+            TblTasks.project_id == project_id
+        ).all()
         return self.response_success(f"Tasks with status '{status}'", {"tasks": tasks})
-    
-    def get_all_tasks(self, project_id: int = None):
-        query = self.db.query(TblTasks)
-        if project_id:
-            query = query.filter(TblTasks.project_id == project_id)
-        tasks = query.all()
+
+    #def get_tasks_by_status(self, status: str):
+    #    tasks = self.db.query(TblTasks).filter(TblTasks.status == status).all()
+    #    return self.response_success(f"Tasks with status '{status}'", {"tasks": tasks})
+    # Get all tasks under a project
+    def get_all_tasks(self, project_id: int):
+        tasks = self.db.query(TblTasks).filter(TblTasks.project_id == project_id).all()
         return self.response_success("Tasks retrieved", {"tasks": tasks})
 
-    def get_my_tasks(self, project_id: int = None):
-        query = self.db.query(TblTasks).filter(TblTasks.assignor_id == self.user_info.id)
-        if project_id:
-            query = query.filter(TblTasks.project_id == project_id)
-        tasks = query.all()
+    # Get my tasks under a project
+    def get_my_tasks(self, project_id: int):
+        tasks = self.db.query(TblTasks).filter(
+            TblTasks.assignor_id == self.user_info.id,
+            TblTasks.project_id == project_id
+        ).all()
         return self.response_success("Tasks retrieved", {"tasks": tasks})
 
-    #def get_my_tasks(self):
-     #   tasks = self.db.query(TblTasks).filter(TblTasks.assignor_id == self.user_info.id).all()
-      #  return self.response_success("Tasks retrieved", {"tasks": tasks})
-
-    def get_tasks_by_type(self, task_type: str):
+# Get tasks by type under a project
+    def get_tasks_by_type(self, project_id: int, task_type: str):
         valid_types = ["Meeting", "Event", "Task"]
         if task_type not in valid_types:
             return self.response_error("Invalid task type", status.HTTP_400_BAD_REQUEST)
 
-        tasks = self.db.query(TblTasks).filter(TblTasks.type == task_type).all()
+        tasks = self.db.query(TblTasks).filter(
+            TblTasks.project_id == project_id,
+            TblTasks.types == task_type
+        ).all()
         return self.response_success(f"Tasks of type '{task_type}'", {"tasks": tasks})
+    #def get_tasks_by_type(self, task_type: str):
+    #    valid_types = ["Meeting", "Event", "Task"]
+    #    if task_type not in valid_types:
+    #        return self.response_error("Invalid task type", status.HTTP_400_BAD_REQUEST)
+
+    #    tasks = self.db.query(TblTasks).filter(TblTasks.type == task_type).all()
+    #    return self.response_success(f"Tasks of type '{task_type}'", {"tasks": tasks})
 
     def update_task_status(self, task_id: int, new_status: str):
         task = self.db.query(TblTasks).filter(TblTasks.id == task_id).first()
