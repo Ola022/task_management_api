@@ -83,8 +83,22 @@ class TaskController:
           # Fetch assignor email
         assignee = self.db.query(TblUsers).filter(TblUsers.id == request.assignee_id).first()
         if assignee and assignee.email:
-            subject = "You have been assigned a new task"
-            body = f"Hello {assignee.full_name},\n\nYou have been assigned a new task: '{new_task.title}'."
+            subject = "New Task Assigned: " + new_task.title
+            body = f""" \n Hello {assignee.full_name}, 
+            \nYou have been assigned a new task. Here are the details: 
+Title: {request.title} 
+Description: {request.description}
+Assigned By: {self.user_info.full_name}
+Story Point: {request.story_point}
+Priority: {request.priority}                        
+Due Date: {request.due_date}
+
+Please log in to your dashboard for more information and to begin working on this task.
+Thank you,
+https://taskmanagementwebapps.netlify.app/
+
+Faculty of Computing and Informatics - Task Management System."""
+            #body = f"Hello {assignee.full_name},\n\nYou have been assigned a new task: '{new_task.title}'."
             self.send_email(assignee.email, subject, body)
 
         return self.response_success("Task created", {"task_id": new_task.id})

@@ -164,14 +164,4 @@ class ProjectController:
 
         return self.response_success("Project deleted", {"project_id": project_id})
 
-    # ---------------- EXTRA METHODS ----------------
-
-    def get_project_with_tasks(self, project_id: int):
-        project = self.db.query(TblProjects).filter(TblProjects.id == project_id).first()
-        if not project:
-            return self.response_error("Project not found", status.HTTP_404_NOT_FOUND)
-
-        # thanks to relationship in models, tasks are accessible
-        return self.response_success("Project and tasks fetched", {
-            "project": {ProjectDisplay.model_validate(project)}
-        })
+    
