@@ -61,6 +61,13 @@ def update_project(
         image=image
     )
 
+@router.get("/filter")
+def filter_projects(
+    status: str = Query(None, description="Filter by status: active/inactive"),
+    include_tasks: bool = False,
+    db: Session = Depends(get_db)
+):
+    return ProjectController(db).get_projects_by_status(status, include_tasks)
 
 @router.put("/{project_id}/image")
 def update_project_image(project_id: int, image: UploadFile = File(...), db: Session = Depends(get_db)):

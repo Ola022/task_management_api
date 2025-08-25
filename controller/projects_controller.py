@@ -126,7 +126,26 @@ class ProjectController:
         self.db.refresh(project)
 
         return self.response_success("Project updated", {"project_id": project.id})
+    
+    def get_projects_by_status(self, status: str, include_tasks: bool = False):
+        query = self.db.query(TblProjects)
 
+        if status:
+            query = query.filter(TblProjects.status == status.lower())
+
+        projects = query.all()
+
+        if include_tasks:
+            return self.response_success(
+                "Projects with tasks fetched",
+                {"projects": [ProjectDisplay.model_validate(p) for p in projects]}
+            )
+
+        return self.response_success(
+            "Projects fetched",
+            {"projects": [ProjectLightDisplay.model_validate(p) for p in projects]}
+        )
+    
     def update_project_image(self, project_id: int, image: UploadFile):
         project = self.db.query(TblProjects).filter(TblProjects.id == project_id).first()
         if not project:
