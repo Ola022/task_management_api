@@ -1,8 +1,13 @@
 from .database  import Base
-from sqlalchemy import Column, ForeignKey, Integer, String, Text, DateTime, Time
+from sqlalchemy import Column, Enum, ForeignKey, Integer, String, Text, DateTime, Time
 from sqlalchemy.orm import relationship
 from datetime import datetime
+import enum
 
+class ProjectStatus(str, enum.Enum):
+    active = "active"
+    inactive = "inactive"
+    
 class TblUsers(Base):
     __tablename__ = 'tbl_users'
     id = Column(Integer, primary_key=True, index=True)    
@@ -26,6 +31,7 @@ class TblProjects(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)                           # Project name
     description = Column(Text, nullable=True)                       # Project details
+    status = Column(Enum(ProjectStatus), default=ProjectStatus.active)   # ✅ new column
     owner_id = Column(Integer, ForeignKey("tbl_users.id"))          # Who owns/created the project
     created_at = Column(String, nullable=True)
     due_date = Column(String, nullable=True)

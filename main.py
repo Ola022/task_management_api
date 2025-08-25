@@ -1,11 +1,12 @@
 from fastapi import FastAPI
 from db import models
 from db.database import engine
-from routers import meetings, tasks, user, project
+from routers import meetings, metrics, tasks, user, project
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
+app.include_router(metrics.router)
 app.include_router(user.router)
 app.include_router(project.router)
 app.include_router(tasks.router)

@@ -12,20 +12,14 @@ router = APIRouter(
 
 # Create a new project
 @router.post("/create/{user_id}")
-#def create_project(user_id: int, request: ProjectBase, db: Session = Depends(get_db)):
-#    return ProjectController(db, user_id).create_project(request)
-def create_project(
-    user_id: int,
-    name: str = Form(...),
-    description: str = Form(None),
-    due_date: str = Form(None),
-    image: UploadFile = File(None),
-    db: Session = Depends(get_db)
+def create_project( user_id: int, name: str = Form(...),
+    description: str = Form(None), due_date: str = Form(None),    
+    image: UploadFile = File(None), db: Session = Depends(get_db)
 ):
     request = ProjectBase(
         name=name,
         description=description,
-        due_date=due_date
+        due_date=due_date,        
     )
     return ProjectController(db, user_id).create_project(request, image)
 
@@ -54,6 +48,7 @@ def update_project(
     name: str = Form(None),
     description: str = Form(None),
     due_date: str = Form(None),
+    status: str = Form(None),
     image: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
@@ -62,6 +57,7 @@ def update_project(
         name=name,
         description=description,
         due_date=due_date,
+        status=status,
         image=image
     )
 

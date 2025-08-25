@@ -54,6 +54,7 @@ class ProjectController:
             created_at=datetime.utcnow().isoformat(),  
             updated_at=datetime.utcnow().isoformat(),
             due_date=request.due_date,
+            status="active",
             image=filename
         )
         self.db.add(new_project)
@@ -88,7 +89,7 @@ class ProjectController:
     #    projects = self.db.query(TblProjects).all()
     #    return self.response_success("Projects fetched", {"projects": projects})
     def update_project(self, project_id: int, name: str = None, description: str = None,
-                   due_date: str = None, image: UploadFile = None):
+                   due_date: str = None, status: str = None, image: UploadFile = None):
         project = self.db.query(TblProjects).filter(TblProjects.id == project_id).first()
         if not project:
             return self.response_error("Project not found", status.HTTP_404_NOT_FOUND)
@@ -100,6 +101,8 @@ class ProjectController:
             project.description = description
         if due_date is not None:
             project.due_date = due_date
+        if status is not None:
+            project.status = status
 
         # Handle image update
         if image:

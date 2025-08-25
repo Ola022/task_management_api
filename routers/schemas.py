@@ -64,6 +64,7 @@ class ProjectBase(BaseModel):
     description: Optional[str] = None    
     due_date: Optional[str] = None
     updated_at: Optional[str] = None
+    status: Optional[str] = None
 
 
 class ProjectDisplay(BaseModel):
@@ -74,6 +75,7 @@ class ProjectDisplay(BaseModel):
     created_at:  Optional[str] = None
     due_date:  Optional[str] = None
     updated_at: Optional[str] = None
+    status: Optional[str] = None
     image: Optional[str]
     image_url: Optional[str] = None
     tasks: List[TasksDisplay] = []          # Nested tasks
@@ -96,6 +98,7 @@ class ProjectLightDisplay(BaseModel): # Light version (no tasks)
     updated_at: Optional[str] = None
     image: Optional[str]
     image_url: Optional[str] = None
+    status: Optional[str] = None
     class Config:
         from_attributes = True
 
