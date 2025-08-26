@@ -5,6 +5,10 @@ from routers.schemas import MeetingBase
 from typing import List
 import datetime
 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 class MeetingController:
 
     def __init__(self, db: Session, user_id: int):
@@ -26,6 +30,51 @@ class MeetingController:
             "status_code": status_code,
             "data": {"error": error},
         }
+    
+    def send_email(self, to_email: str, subject: str, body: str, request):
+        # Configure your SMTP server and credentials 
+        venue = ""
+        if request.locationType == "offline":
+            venue ="Venue : "+ request.venue
+        else:
+            venue ="URL : "+ request.url
+
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        body = body + f""" Here are the full details: 
+    Title : {request.title} 
+    Agenda : {request.agenda},
+    Organizer : {request.organizer},  
+    Date : {request.date},
+    Time : {request.time},
+    {venue}     
+    
+    Please log in to your dashboard for more information.
+    Thank you,
+    https://taskmanagementwebapps.netlify.app/
+
+    Faculty of Computing and Informatics - Task Management System."""
+        #smtp_user = "orlam0222@gmail.com" #ajnd ooah ddkd pant
+        #smtp_password = "ajndooahddkdpant"  #`ajnd ooah ddkd pant` 16-char app password, no spaces
+        smtp_user = "orlamtesting0222@gmail.com" 
+        smtp_password = "tohksrovckqvqjrk"  #`tohk srov ckqv qjrk` 16-char app password, no spaces
+        
+        msg = MIMEMultipart()
+        msg["From"] = smtp_user
+        msg["To"] = to_email
+        msg["Subject"] = subject
+        msg.attach(MIMEText(body, "plain"))
+
+        try:
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls()
+            server.login(smtp_user, smtp_password)
+            server.sendmail(smtp_user, to_email, msg.as_string())
+            print(f"send email to {to_email}")
+            server.quit()
+        except Exception as e:
+            print(f"Failed to send email: {e}")
+
     
     def compute_status(self, meeting):
         now = datetime.datetime.now()
@@ -68,6 +117,19 @@ class MeetingController:
         self.db.add(new_meeting)
         self.db.commit()
         self.db.refresh(new_meeting)
+
+        participants = request.participants
+        for participant in participants:            
+            if isinstance(participant, str):
+                participant = int(participant)
+            user = self.db.query(TblUsers).filter(TblUsers.id == participant).first()
+            if user and user.email:
+                subject = "Meeting Invitation"
+                body = f"Hello {user.full_name.upper()},\n\n You have been invited to: '{request.title.upper()}' Meeting."
+                self.send_email(user.email, subject, body, request)
+        
+
+
         return self.response_success("Meeting created", {"meeting_id": new_meeting.id})
 
     def get_all_meetings(self):
@@ -117,10 +179,11 @@ class MeetingController:
         meeting = self.db.query(TblMeetings).filter(TblMeetings.id == meeting_id).first()
         if not meeting:
             return self.response_error("Meeting not found", status.HTTP_404_NOT_FOUND)
-        if new_status not in ["Upcoming", "Ongoing", "Completed", "Cancelled"]:
+        if new_status not in ["Created", "Upcoming", "Ongoing", "Completed", "Cancelled"]:
             return self.response_error("Invalid status", status.HTTP_400_BAD_REQUEST)
         meeting.status = new_status
         self.db.commit()
+        
         return self.response_success("Meeting status updated", {"meeting_id": meeting.id, "new_status": meeting.status})
 
     def update_meeting(self, meeting_id: int, request: MeetingBase):
@@ -140,6 +203,17 @@ class MeetingController:
         meeting.date = request.date
         meeting.time = request.time
         self.db.commit()
+
+        participants = request.participants
+        for participant in participants:            
+            if isinstance(participant, str):
+                participant = int(participant)
+            user = self.db.query(TblUsers).filter(TblUsers.id == participant).first()
+            if user and user.email:
+                subject = "Meeting Invitation"
+                body = f"Hello {user.full_name.upper()},\n\n You have been invited to: '{request.title.upper()}' Meeting."
+                self.send_email(user.email, subject, body, request)
+        
         return self.response_success("Meeting updated successfully", {"meeting_id": meeting.id})
 
     def delete_meeting(self, meeting_id: int):

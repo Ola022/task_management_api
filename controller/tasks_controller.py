@@ -31,11 +31,23 @@ class TaskController:
             "data": {"error": error},
         }
     
-    def send_email(self, to_email: str, subject: str, body: str):
+    def send_email(self, to_email: str, subject: str, body: str, request):
         # Configure your SMTP server and credentials        
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
-        
+        body = body + f""" Here are the details: 
+Title: {request.title} 
+Description: {request.description}
+Assigned By: {self.user_info.full_name}
+Story Point: {request.story_point}
+Priority: {request.priority}                        
+Due Date: {request.due_date}
+
+Please log in to your dashboard for more information and to begin working on this task.
+Thank you,
+https://taskmanagementwebapps.netlify.app/
+
+Faculty of Computing and Informatics - Task Management System."""
         #smtp_user = "orlam0222@gmail.com" #ajnd ooah ddkd pant
         #smtp_password = "ajndooahddkdpant"  #`ajnd ooah ddkd pant` 16-char app password, no spaces
         smtp_user = "orlamtesting0222@gmail.com" 
@@ -80,26 +92,13 @@ class TaskController:
         self.db.commit()
         self.db.refresh(new_task)
 
-          # Fetch assignor email
+          # Fetch and update assignee through  email
         assignee = self.db.query(TblUsers).filter(TblUsers.id == request.assignee_id).first()
         if assignee and assignee.email:
-            subject = "New Task Assigned: " + new_task.title
-            body = f""" \n Hello {assignee.full_name}, 
-            \nYou have been assigned a new task. Here are the details: 
-Title: {request.title} 
-Description: {request.description}
-Assigned By: {self.user_info.full_name}
-Story Point: {request.story_point}
-Priority: {request.priority}                        
-Due Date: {request.due_date}
-
-Please log in to your dashboard for more information and to begin working on this task.
-Thank you,
-https://taskmanagementwebapps.netlify.app/
-
-Faculty of Computing and Informatics - Task Management System."""
+            subject = "New Task Assigned: " + new_task.title.upper()
+            body = f""" \n Hello {assignee.full_name.upper()}, \nYou have been assigned a new task. """
             #body = f"Hello {assignee.full_name},\n\nYou have been assigned a new task: '{new_task.title}'."
-            self.send_email(assignee.email, subject, body)
+            self.send_email(assignee.email, subject, body, request)
 
         return self.response_success("Task created", {"task_id": new_task.id})
 
@@ -126,12 +125,18 @@ Faculty of Computing and Informatics - Task Management System."""
         task.due_date = request.due_date
 
         self.db.commit()
-
+        # Fetch assignee email
         assignee = self.db.query(TblUsers).filter(TblUsers.id == request.assignee_id).first()
         if assignee and assignee.email:
-            subject = "You have been assigned a new task"
-            body = f"Hello {assignee.full_name},\n\nYou have been assigned a new task: '{task.title}'."
-            self.send_email(assignee.email, subject, body)
+            subject = "Task Updated"
+            body = f"Hello {assignee.full_name.upper()},\n\n The task: '{request.title.upper()}', As been updated."
+            self.send_email(assignee.email, subject, body, request)
+        # Fetch assignor email
+        assignor = self.db.query(TblUsers).filter(TblUsers.id == request.assignor_id).first()
+        if assignor and assignor.email:
+            subject = "You just Update Task : " +  request.title
+            body = f""" \n Hello {assignor.full_name.upper()}, \n  Your task as been updated successfully """            
+            self.send_email(assignor.email, subject, body, request)
         return self.response_success("Task updated successfully", {"task_id": task.id})
     
     def get_tasks_by_status(self, project_id: int, status: str):
@@ -168,31 +173,27 @@ Faculty of Computing and Informatics - Task Management System."""
             TblTasks.types == task_type
         ).all()
         return self.response_success(f"Tasks of type '{task_type}'", {"tasks": tasks})
-    #def get_tasks_by_type(self, task_type: str):
-    #    valid_types = ["Meeting", "Event", "Task"]
-    #    if task_type not in valid_types:
-    #        return self.response_error("Invalid task type", status.HTTP_400_BAD_REQUEST)
-
-    #    tasks = self.db.query(TblTasks).filter(TblTasks.type == task_type).all()
-    #    return self.response_success(f"Tasks of type '{task_type}'", {"tasks": tasks})
-
+    
     def update_task_status(self, task_id: int, new_status: str):
         task = self.db.query(TblTasks).filter(TblTasks.id == task_id).first()
         if not task:
             return self.response_error("Task not found", status.HTTP_404_NOT_FOUND)
-
         if task.assignee_id != self.user_info.id and task.assignor_id != self.user_info.id :
             return self.response_error("You are not allowed to update this task", status.HTTP_403_FORBIDDEN)
 
         task.status = new_status
         self.db.commit()
 
-        assignee = self.db.query(TblUsers).filter(TblUsers.id == task.assignee_id).first()
-        print(assignee.email)
+        assignee = self.db.query(TblUsers).filter(TblUsers.id == task.assignee_id).first()        
         if assignee and assignee.email:
-            subject = "You have been assigned a new task"
-            body = f"Hello {assignee.full_name},\n\nYou have been assigned a new task: '{task.title}'."
-            self.send_email(assignee.email, subject, body)
+            subject = "Status Updated"
+            body = f"Hi {assignee.full_name.upper()},\n\n The task: '{task.title.upper()}', Status has been updated."
+            self.send_email(assignee.email, subject, body, task )
+        assignor = self.db.query(TblUsers).filter(TblUsers.id == task.assignor_id).first()
+        if assignor and assignor.email:
+            subject = "Status Updated"
+            body = f"Hello { assignor.full_name.upper()},\n\n The task '{task.title.upper()}', status has been updated"
+            self.send_email(assignor.email, subject, body, task)        
         
         return self.response_success("Task status updated", {"task_id": task.id, "new_status": task.status})
     
@@ -229,6 +230,18 @@ Faculty of Computing and Informatics - Task Management System."""
 
         task.assignee_id = new_user_id
         self.db.commit()
+
+        assignee = self.db.query(TblUsers).filter(TblUsers.id == task.assignee_id).first()        
+        if assignee and assignee.email:
+            subject = "New Task Assigned: " + task.title
+            body = f""" \n Hello {assignee.full_name.upper()}, \nYou have been assigned a new task. """
+            self.send_email(assignee.email, subject, body, task)
+        assignor = self.db.query(TblUsers).filter(TblUsers.id == task.assignor_id).first()
+        if assignor and assignor.email:
+            subject = "Task re-Assigned Successfully"
+            body = f"Hello {assignor.full_name.upper()},\n\n Your task '{task.title.upper()}', has been reassign to {assignee.full_name.upper()}"
+            self.send_email(assignor.email, subject, body, task)        
+        
         return self.response_success("Task reassigned successfully", {"task_id": task_id, "new_assignee_id": new_user_id})
     
 
