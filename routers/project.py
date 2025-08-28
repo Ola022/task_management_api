@@ -69,6 +69,11 @@ def filter_projects(
 ):
     return ProjectController(db).get_projects_by_status(status, include_tasks)
 
+# Update project status (manual)
+@router.put("/status/update/{project_id}/{new_status}/{user_id}")
+def update_project_status(project_id: int, new_status: str, user_id: int, db: Session = Depends(get_db)):
+    return ProjectController(db, user_id).update_project_status(project_id, new_status)
+
 @router.put("/{project_id}/image")
 def update_project_image(project_id: int, image: UploadFile = File(...), db: Session = Depends(get_db)):
     return ProjectController(db, None).update_project_image(project_id, image)

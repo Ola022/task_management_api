@@ -127,12 +127,22 @@ class ProjectController:
 
         return self.response_success("Project updated", {"project_id": project.id})
     
+    def update_project_status(self, project_id: int, new_status: str):
+        project = self.db.query(TblProjects).filter(TblProjects.id == project_id).first()
+        if not project:
+            return self.response_error("Project not found", status.HTTP_404_NOT_FOUND)
+        if new_status not in ["active", "inactive"]:
+            return self.response_error("Invalid status", status.HTTP_400_BAD_REQUEST)
+        project.status = new_status
+        self.db.commit()
+        return self.response_success("Project updated", {"project_id": project.id})
+
+
     def get_projects_by_status(self, status: str, include_tasks: bool = False):
         query = self.db.query(TblProjects)
 
         if status:
             query = query.filter(TblProjects.status == status.lower())
-
         projects = query.all()
 
         if include_tasks:

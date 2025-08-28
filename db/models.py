@@ -49,11 +49,11 @@ class TblTasks(Base):
     project_id = Column(Integer, ForeignKey("tbl_projects.id", ondelete="CASCADE"))  # Link to project
     
     title = Column(String)                  #Task title
-    description = Column(String)            #Task body
+    description = Column(Text,  nullable=True)            #Task body
     types = Column(String)                  #Task type: Task / Meeting / Event
     assignee_id = Column(Integer)           #Who is responsible
     assignor_id = Column(Integer)           #Who is reporting the task
-    story_point = Column(String)            #Complexity or effort estimation
+    story_point = Column(Text, nullable=True)            #Complexity or effort estimation
     priority = Column(String)               #Low / Medium / High / Critical
     status	 = Column(String)               #Pending / In Progress / Done
     created_at = Column(String)             
